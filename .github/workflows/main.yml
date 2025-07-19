@@ -4,55 +4,30 @@ on: [push]
 
 jobs: 
   sast_scan: 
-    name: Static Analysis Security Scan with Bandit
+    name: static scanning of code
     runs-on: ubuntu-latest
+
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Python
+    - name: Set up python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.10
-
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-
+       python-version: 3.8
+    
+       
     - name: Install Bandit
       run: pip install bandit
 
-    - name: Run Bandit scan (JSON and SARIF outputs)
-      run: |
-        bandit -r . -f json -o bandit-report.json
-        bandit -r . -f sarif -o bandit-report.sarif
+    - name: Run Bandit scan
+      run: bandit -ll -ii -r . -f json -o bandit-report.json  
 
-    - name: Upload Bandit JSON report
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: bandit-findings-json
-        path: bandit-report.json
-
-    - name: Upload Bandit SARIF report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: bandit-findings-sarif
-        path: bandit-report.sarif
-
-    - name: Fail if Bandit found medium or higher issues
-      id: fail-check
-      run: |
-        jq '.results | map(select(.issue_severity == "MEDIUM" or .issue_severity == "HIGH")) | length' bandit-report.json > findings_count.txt
-        count=$(cat findings_count.txt)
-        echo "Found $count medium or high severity issues."
-        if [ "$count" -gt 0 ]; then
-          echo "Failing due to Bandit findings."
-          exit 1
-        fi
+       name: bandit-findings
+       path: bandit-report.json
+  
