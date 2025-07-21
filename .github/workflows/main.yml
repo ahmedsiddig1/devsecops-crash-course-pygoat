@@ -64,21 +64,21 @@ jobs:
      run: docker images
 
    - name: Tag Image for Docker Hub
-     run: docker tag myapp:latest ${{ REPO_USER }}/myapp:latest
+     run: docker tag myapp:latest ${{ secrets.REPO_USER }}/myapp:latest
 
    - name: Login to Docker Hub
-     run: echo "${{ REPO_PWD }}" | docker login -u "${{ REPO_USER }}" --password-stdin
+     run: echo "${{ secrets.REPO_PWD }}" | docker login -u "${{ secrets.REPO_USER }}" --password-stdin
 
    - name: Push Docker Image
-     run: docker push ${{ REPO_USER }}/myapp:latest
+     run: docker push ${{ secrets.REPO_USER }}/myapp:latest
 
 
    - name: Docker Scout Scan
      uses: docker/scout-action@v1.0.9
      with:
-       dockerhub-user: ${{ REPO_USER }}
-       dockerhub-password: ${{ REPO_PWD }}
-       image: ${{ REPO_USER }}/myapp:latest
+       dockerhub-user: ${{ secrets.REPO_USER }}
+       dockerhub-password: ${{ secrets.REPO_PWD }}
+       image: ${{ secrets.REPO_USER }}/myapp:latest
        command: quickview,cves
        only-severities: critical,high,medium
        sarif-file: scout-report.sarif
