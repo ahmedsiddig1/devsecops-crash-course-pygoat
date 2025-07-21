@@ -29,6 +29,15 @@ jobs:
       name: bandit-findings
       path: bandit-report.json
 
+   - name: Check if daemon.json exists
+     run: |
+       if [ -f /etc/docker/daemon.json ]; then
+          echo "Contents of daemon.json:"
+          cat /etc/docker/daemon.json
+       else
+          echo "No daemon.json found (default Docker config in use)"
+       fi
+
  image_scan:
    name: Build Image and Run Image Scan
    runs-on: ubuntu-latest
