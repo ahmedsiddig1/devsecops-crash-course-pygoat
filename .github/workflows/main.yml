@@ -72,6 +72,8 @@ jobs:
    - name: Push Docker Image
      run: docker push ${{ secrets.REPO_USER }}/myapp:latest
 
+   - name: Wait to Ensure Image is Available
+     run: sleep 10     
 
    - name: Docker Scout Scan
      uses: docker/scout-action@v1.0.9
