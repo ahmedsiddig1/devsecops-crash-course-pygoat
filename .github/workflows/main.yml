@@ -22,7 +22,7 @@ jobs:
    - name: Run Bandit Scan
      run: bandit -ll -ii -r . -f json -o bandit-report.json --exit-zero
 
-   - name: Upload Artifact
+   - name: Upload Bandit Report
      uses: actions/upload-artifact@v4
      if: always()
      with:
@@ -37,12 +37,7 @@ jobs:
    - name: Checkout code
      uses: actions/checkout@v2
 
-   #- name: Set up Docker
-     #uses: docker-practice/actions-setup-docker@v1
-     #with:
-      #docker_version: '24.0.2'
-
-   - name: Check Docker Version (Already Preinstalled)
+   - name: Check Docker Version
      run: docker --version
 
    - name: Check Docker Daemon Status
@@ -65,15 +60,17 @@ jobs:
    - name: Build Docker Image
      run: docker build -f Dockerfile -t myapp:latest .
 
-   #- name: Docker Scout Scan
-     #run: |
-       #curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-       #sh install-scout.sh
-       #echo ${{ secrets.REPO_PWD }} | docker login -u ${{ secrets.REPO_USER }} --password-stdin
-       #docker scout quickview
-       #docker scout cves
    - name: List Docker Images
      run: docker images
+
+   - name: Tag Image for Docker Hub
+     run: docker tag myapp:latest ${{ secrets.REPO_USER }}/myapp:latest
+
+   - name: Login to Docker Hub
+     run: echo "${{ secrets.REPO_PWD }}" | docker login -u "${{ secrets.REPO_USER }}" --password-stdin
+
+   - name: Push Docker Image
+     run: docker push ${{ secrets.REPO_USER }}/myapp:latest
 
 
    - name: Docker Scout Scan
@@ -81,12 +78,12 @@ jobs:
      with:
        dockerhub-user: ${{ secrets.REPO_USER }}
        dockerhub-password: ${{ secrets.REPO_PWD }}
-       image: local://myapp:latest 
+       image: ${{ secrets.REPO_USER }}/myapp:latest
        command: quickview,cves
        only-severities: critical,high,medium
        sarif-file: scout-report.sarif
 
-   - name: Upload Artifact
+   - name: Upload Docker Scout Report
      uses: actions/upload-artifact@v4
      if: always()
      with:
